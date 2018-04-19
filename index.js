@@ -47,26 +47,26 @@ module.exports = function (
           : {
             count : 0,
             words : {},
-            next : {},
             prev : {},
+            next : {},
           }
         ;
         db[cword] = node;
 
-        node.count ++;
+        node.count++;
         node.words[word] = (
           Hash.has(node.words, word) ? node.words[word] : 0
         ) + 1;
         node.next[cnext] = (
           Hash.has(node.next, cnext) ? node.next[cnext] : 0
         ) + 1
+
         if (i > 1) {
           var prev = genKey(links[i-2]);
           node.prev[prev] = (
             Hash.has(node.prev, prev) ? node.prev[prev] : 0
           ) + 1;
-        }
-        else {
+        } else {
           node.prev[''] = (node.prev[''] || 0) + 1;
         }
       }
@@ -74,9 +74,10 @@ module.exports = function (
       if (!Hash.has(db, cnext)) db[cnext] = {
         count : 1,
         words : {},
-        next : { '' : 0 },
         prev : {},
+        next : { '' : 0 },
       };
+
       var n = db[cnext];
       n.words[next] = (Hash.has(n.words, next) ? n.words[next] : 0) + 1;
       n.prev[cword] = (Hash.has(n.prev, cword) ? n.prev[cword] : 0) + 1;
@@ -88,13 +89,13 @@ module.exports = function (
 
   self.search = function (text) {
     var words = genWords(text)
-
-    // find a starting point...
-    var start = null;
     var groups = {};
+
     for (var i = 0; i < words.length; i += order) {
       var word = genKey(words.slice(i, i + order).join(' '));
-      if (Hash.has(db, word)) groups[word] = db[word].count;
+
+      if (Hash.has(db, word))
+        groups[word] = db[word].count;
     }
 
     return deck.pick(groups);
@@ -151,7 +152,7 @@ module.exports = function (
   self.fill = function (cur, limit) {
     var res = [ deck.pick(db[cur].words) ];
     if (!res[0]) return [];
-    if (limit && res.length >= limit) return res;;
+    if (limit && res.length >= limit) return res;
 
     var pcur = cur;
     var ncur = cur;
@@ -172,7 +173,7 @@ module.exports = function (
         ncur = null;
         if (next) {
           ncur = next.key;
-          res.unshift(next.word);
+          res.push(next.word);
           if (limit && res.length >= limit) break;
         }
       }
