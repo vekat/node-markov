@@ -3,7 +3,7 @@ var deck = require('deck');
 var Lazy = require('lazy');
 var Hash = require('hashish');
 
-module.exports = function (order) {
+module.exports = function (order, token_expr = /[^a-z\d]+/g) {
   if (!order) order = 2;
   var db = {};
   var self = {};
@@ -191,14 +191,14 @@ module.exports = function (order) {
     return db
   }
 
+  function clean (s) {
+    return s
+      .toLowerCase()
+      .replace(token_expr, '_')
+      .replace(/^_/, '')
+      .replace(/_$/, '')
+    ;
+  }
+
   return self;
 };
-
-function clean (s) {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z\d]+/g, '_')
-    .replace(/^_/, '')
-    .replace(/_$/, '')
-  ;
-}
