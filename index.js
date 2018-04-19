@@ -3,7 +3,11 @@ var deck = require('deck');
 var Lazy = require('lazy');
 var Hash = require('hashish');
 
-module.exports = function (order, exprs = [{ re:/[^a-z\d]+/g, tk:'_' }]) {
+module.exports = function (
+  order,
+  genKey = (s) => s.toLowerCase().replace(/[^a-z\d]+/g, '_').replace(/^_/, '').replace(/_$/, ''),
+  genWords = (s) => s.split(/\s+/)
+) {
   if (!order) order = 2;
   var db = {};
   var self = {};
@@ -19,7 +23,7 @@ module.exports = function (order, exprs = [{ re:/[^a-z\d]+/g, tk:'_' }]) {
     }
     else {
       var text = (Buffer.isBuffer(seed) ? seed.toString() : seed)
-      var words = text.split(/\s+/);
+      var words = genWords(text)
       var links = [];
 
       for (var i = 0; i < words.length; i += order) {
@@ -34,9 +38,9 @@ module.exports = function (order, exprs = [{ re:/[^a-z\d]+/g, tk:'_' }]) {
 
       for (var i = 1; i < links.length; i++) {
         var word = links[i-1];
-        var cword = clean(word);
+        var cword = genKey(word)
         var next = links[i];
-        var cnext = clean(next);
+        var cnext = genKey(next)
 
         var node = Hash.has(db, cword)
           ? db[cword]
@@ -57,7 +61,7 @@ module.exports = function (order, exprs = [{ re:/[^a-z\d]+/g, tk:'_' }]) {
           Hash.has(node.next, cnext) ? node.next[cnext] : 0
         ) + 1
         if (i > 1) {
-          var prev = clean(links[i-2]);
+          var prev = genKey(links[i-2]);
           node.prev[prev] = (
             Hash.has(node.prev, prev) ? node.prev[prev] : 0
           ) + 1;
@@ -83,13 +87,13 @@ module.exports = function (order, exprs = [{ re:/[^a-z\d]+/g, tk:'_' }]) {
   };
 
   self.search = function (text) {
-    var words = text.split(/\s+/);
+    var words = genWords(text)
 
     // find a starting point...
     var start = null;
     var groups = {};
     for (var i = 0; i < words.length; i += order) {
-      var word = clean(words.slice(i, i + order).join(' '));
+      var word = genKey(words.slice(i, i + order).join(' '));
       if (Hash.has(db, word)) groups[word] = db[word].count;
     }
 
@@ -189,19 +193,6 @@ module.exports = function (order, exprs = [{ re:/[^a-z\d]+/g, tk:'_' }]) {
   // function to return db object
   self.getDB = function () {
     return db
-  }
-
-  function clean (s) {
-    s = s.toLowerCase()
-
-    exprs.forEach((action) => {
-      s = s.replace(action.re, action.tk)
-    })
-
-    return s
-      .replace(/^_/, '')
-      .replace(/_$/, '')
-    ;
   }
 
   return self;
