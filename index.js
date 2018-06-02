@@ -1,7 +1,6 @@
 var EventEmitter = require('events').EventEmitter;
 var deck = require('deck');
 var Lazy = require('lazy');
-var Hash = require('hashish');
 
 module.exports = function (
   order,
@@ -42,7 +41,7 @@ module.exports = function (
         var next = links[i];
         var cnext = genKey(next)
 
-        var node = Hash.has(db, cword)
+        var node = db[cword] !== undefined
           ? db[cword]
           : {
             count : 0,
@@ -55,23 +54,23 @@ module.exports = function (
 
         node.count++;
         node.words[word] = (
-          Hash.has(node.words, word) ? node.words[word] : 0
+          node.words[word] !== undefined ? node.words[word] : 0
         ) + 1;
         node.next[cnext] = (
-          Hash.has(node.next, cnext) ? node.next[cnext] : 0
+          node.next[cnext] !== undefined ? node.next[cnext] : 0
         ) + 1
 
         if (i > 1) {
           var prev = genKey(links[i-2]);
           node.prev[prev] = (
-            Hash.has(node.prev, prev) ? node.prev[prev] : 0
+            node.prev[prev] !== undefined ? node.prev[prev] : 0
           ) + 1;
         } else {
           node.prev[''] = (node.prev[''] || 0) + 1;
         }
       }
 
-      if (!Hash.has(db, cnext)) db[cnext] = {
+      if (db[cnext] === undefined) db[cnext] = {
         count : 1,
         words : {},
         prev : {},
@@ -79,8 +78,8 @@ module.exports = function (
       };
 
       var n = db[cnext];
-      n.words[next] = (Hash.has(n.words, next) ? n.words[next] : 0) + 1;
-      n.prev[cword] = (Hash.has(n.prev, cword) ? n.prev[cword] : 0) + 1;
+      n.words[next] = (n.words[next] !== undefined ? n.words[next] : 0) + 1;
+      n.prev[cword] = (n.prev[cword] !== undefined ? n.prev[cword] : 0) + 1;
       n.next[''] = (n.next[''] || 0) + 1;
 
       if (cb) cb(null);
@@ -94,7 +93,7 @@ module.exports = function (
     for (var i = 0; i < words.length; i += order) {
       var word = genKey(words.slice(i, i + order).join(' '));
 
-      if (Hash.has(db, word))
+      if (db[word] !== undefined)
         groups[word] = db[word].count;
     }
 
