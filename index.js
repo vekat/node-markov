@@ -149,7 +149,8 @@ module.exports = function (
   };
 
   self.fill = function (cur, limit) {
-    var res = [ deck.pick(db[cur].words) ];
+    var res = []
+    if (db[cur] && db[cur].words) res.push(deck.pick(db[cur].words));
     if (!res[0]) return [];
     if (limit && res.length >= limit) return res;
 
